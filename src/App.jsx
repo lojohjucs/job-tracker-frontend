@@ -10,7 +10,7 @@ function App(){
   const [status, setStatus] = useState('applied')
 
   useEffect(() => {
-    fetch('http://127.0.0.1:8000/api/applications/')
+    fetch('https://job-tracker-backend-oqia.onrender.com/api/applications/')
       .then(response => response.json())
       .then(data => setApplications(data))
   }, [])
@@ -19,7 +19,7 @@ function App(){
     event.preventDefault()
 
     if (editingId) {
-      fetch(`http://127.0.0.1:8000/api/applications/${editingId}/`, {
+      fetch(`https://job-tracker-backend-oqia.onrender.com/api/applications/${editingId}/`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -40,7 +40,7 @@ function App(){
       })
   }
     else {
-      fetch('http://127.0.0.1:8000/api/applications/', {
+      fetch('https://job-tracker-backend-oqia.onrender.com/api/applications/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -60,7 +60,7 @@ function App(){
 }
   
   function handleDelete(id){
-    fetch(`http://127.0.0.1:8000/api/applications/${id}/`, {
+    fetch(`https://job-tracker-backend-oqia.onrender.com/api/applications/${id}/`, {
       method: 'DELETE'
     })
       .then(() => {
