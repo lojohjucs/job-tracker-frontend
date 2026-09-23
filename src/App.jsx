@@ -1,9 +1,13 @@
 import { useState, useEffect } from "react";
+import './App.css'
 
 function App(){
   const [applications, setApplications] = useState([])
   const [company, setCompany] = useState('')
   const [role, setRole] = useState('')
+  const [editingId, setEditingId] = useState(null)
+  const [dateApplied, setDateApplied] = useState('')
+  const [status, setStatus] = useState('applied')
 
   useEffect(() => {
     fetch('http://127.0.0.1:8000/api/applications/')
@@ -14,22 +18,46 @@ function App(){
   function handleSubmit(event){
     event.preventDefault()
 
-    fetch('http://127.0.0.1:8000/api/applications/', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        company: company,
-        role: role,
-        date_applied: '2026-09-09'
+    if (editingId) {
+      fetch(`http://127.0.0.1:8000/api/applications/${editingId}/`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          company: company,
+          role: role,
+          status: status,
+        })
       })
-    })
-      .then(response => response.json())
-      .then(newApp => {
-        setApplications([...applications, newApp])
-        setCompany('')
-        setRole('')
+        .then(response => response.json())
+        .then(updatedApp => {
+          setApplications(applications.map((app) =>
+            app.id === editingId ? updatedApp : app
+          ))
+          setCompany('')
+          setRole('')
+          setEditingId(null)
+
       })
   }
+    else {
+      fetch('http://127.0.0.1:8000/api/applications/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          company: company,
+          role: role,
+          date_applied: dateApplied
+      })
+  })
+    .then(response => response.json())
+    .then(newApp => {
+      setApplications([...applications, newApp])
+      setCompany('')
+      setRole('')
+      setDateApplied('')
+    })
+  }
+}
   
   function handleDelete(id){
     fetch(`http://127.0.0.1:8000/api/applications/${id}/`, {
@@ -40,8 +68,16 @@ function App(){
       })
   }
 
+  function handleEditClick(app) {
+    setEditingId(app.id)
+    setCompany(app.company)
+    setRole(app.role)
+    setStatus(app.status)
+    setDateApplied(app.date_applied)
+    
+  }
   return (
-    <div>
+    <div className = "container">
       <h1>Job Application Tracker</h1>
       <form onSubmit = {handleSubmit}>
         <input
@@ -56,13 +92,29 @@ function App(){
           value = {role}
           onChange = { (e) => setRole(e.target.value)}
         />
-        <button type = "submit">Add Application</button>
+        <input
+          type = "date"
+          value = {dateApplied}
+          onChange = { (e) => setDateApplied(e.target.value)}
+        />
+        <select value ={status} onChange ={ (e) => setStatus(e.target.value)}>
+          <option value = "applied">Applied</option>
+          <option value = "interviewing">Interviewing</option>
+          <option value = "offer">Offer</option>
+          <option value = "rejected">Rejected</option>
+        </select>
+        <button type="submit">{editingId ? 'Save Changes' : 'Add Application'}</button>
       </form>
       <ul>
         {applications.map((app) => (
           <li key = {app.id}>
-            {app.role} at {app.company} - {app.status}
-            <button onClick = {() => handleDelete(app.id)}>Delete</button>
+            <span className = "app-info">
+              {app.role} at {app.company} - {app.status}
+            </span>
+            <div className = "app-actions">
+              <button onClick = {() => handleEditClick(app)}>Edit</button>
+              <button onClick = {() => handleDelete(app.id)}>Delete</button>
+            </div>
           </li>
         ))}
       </ul>
